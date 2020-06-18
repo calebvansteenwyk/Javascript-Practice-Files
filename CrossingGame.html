@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Crossing Game</title>
+        <style type="text/css">
+            canvas {
+                border: 2px solid black;
+                background: salmon;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Crossing Game</h1>
+        <canvas id="canvas" width=1000px height=500px></canvas>
+        <script type="text/javascript">
+            var canvas = document.getElementById('canvas'); // gets canvas from the html
+            var ctx = canvas.getContext('2d'); //gets a variable for the canvas context
+            let screenWidth = 1000; //reference for width
+            let screenHeight = 500; //reference for height
+            let width = 50;
+            var isGameLive = true;
+            class gameCharacter { //class constructor for game characters
+                constructor(x, y, width, height, color, speed) {
+                    this.x = x;
+                    this.y = y;
+                    this.width = width;
+                    this.height = height;
+                    this.color = color;
+                    this.speed = speed;
+                    this.maxSpeed = 4;
+                }
+                moveVertically() {
+                    if (this.y > screenHeight - 100 || this.y < 50) {
+                        this.speed = - this.speed;
+                    }
+                    this.y += this.speed;
+                }
+                moveHorizontally() {
+                    this.x += this.speed;
+                }
+            }
+            var endGoal = new gameCharacter(950, 0, 50, 500, "rgba(0, 255, 0, 0.5)", 0);
+            var enemies = [
+                new gameCharacter(250, 50, width, width, "rgba(0, 0, 255, 0.5)", 2),
+                new gameCharacter(450, screenHeight - 100, width, width, "rgba(0, 0, 255, 0.5)", 4),
+                new gameCharacter(700, 50, width, width, "rgba(0, 0, 255, 0.5)", 6),
+            ];
+            var player = new gameCharacter(50, 225, width, width, "rgba(0, 255, 0, 0.5)", 0);
+            document.onkeydown = function(event) {
+                let keyPressed = event.keyCode; //sets keyPressed to the key the user pressed down on
+                if (keyPressed == 68) {
+                    player.speed = player.maxSpeed;
+                }
+                if (keyPressed == 65) {
+                    player.speed = - player.maxSpeed;
+                }
+            };
+            document.onkeyup = function(event) {
+                player.speed = 0;
+            }
+            var checkColissions = function(rect1, rect2) {
+                var xOverlap = Math.abs(rect1.x - rect2.x) <= Math.max(rect1.width, rect2.width);
+                var yOverlap = Math.abs(rect1.y - rect2.y) <= Math.max(rect1.height, rect2.height);
+                return xOverlap && yOverlap;
+            }
+            var draw = function() { //draws the character
+                ctx.clearRect(0, 0, screenWidth, screenHeight); //clears the screen
+                ctx.fillStyle = player.color;
+                ctx.fillRect(player.x, player.y, player.width, player.height);
+                enemies.forEach(function(element) {
+                    ctx.fillStyle = element.color;
+                ctx.fillRect(element.x, element.y, element.width, element.height);
+                })
+                ctx.fillStyle = endGoal.color;
+                ctx.fillRect(endGoal.x, endGoal.y, endGoal.width, endGoal.height);
+            }
+            var update = function() {
+                enemies.forEach(function(element) {
+                    if (checkColissions(player, element)) {
+                        endGameLogic("Game Over");
+                    }
+                    element.moveVertically();
+                });
+                if (checkColissions(endGoal, player)) {
+                    endGameLogic("You win!");
+                }
+                player.moveHorizontally();
+                
+            }
+            var endGameLogic = function(text) {
+                isGameLive = false;
+                alert(text);
+                window.location = ""; //refreshes the page
+            }
+            var step = function() { // this is the "game loop" that keeps the game running
+                update();
+                draw(); // draws the rectangle
+                if (isGameLive) {
+                    window.requestAnimationFrame(step); //requests a new frame from the game loop
+                }
+            }   
+            step(); //this starts the game loop
+        </script>
+    </body>
+</html>
